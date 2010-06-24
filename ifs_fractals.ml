@@ -32,7 +32,7 @@ let tracer fs n =
              in urs p' (i-1)
   in urs {x= 1.0; y= 1.0} n;;
 
-let bizarre =
+let barnsley =
 { po = {x= -2.25 ; y= -0.50};
 sz = {x= 5.00 ; y= 11.00};
 lt = [{pb= 0.84; kf= [| 0.85; 0.04; 0.00; -0.04; 0.85; 1.60|]};
