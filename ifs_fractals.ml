@@ -10,9 +10,9 @@ let image kf p =
     { x= kf.(0)*.p.x+.kf.(1)*.p.y+.kf.(2);
     y= kf.(3)*.p.x+.kf.(4)*.p.y+.kf.(5)};;
 
-let rec choix_image p rd = function
+let rec select_image p rd = function
     | t::_ when rd<=t.pb -> image t.kf p
-    | _::lt -> choix_image p rd lt
+    | _::lt -> select_image p rd lt
     | [] -> raise Not_found;;
 
 open Graphics;;
@@ -22,11 +22,11 @@ let pixel_of_point po sz p =
     (int_of_float((p.x-.po.x)/.sz.x*.float_of_int(size_x())),
     int_of_float((p.y-.po.y)/.sz.y*.float_of_int(size_x())));;
 
-let tracer fs n =
+let trace fs n =
  let _ = clear_graph () in
   let rec urs pt = function
    | 0 -> ()
-   | i -> let p' = (choix_image pt (Random.float 1.0) fs.lt) in
+   | i -> let p' = (select_image pt (Random.float 1.0) fs.lt) in
            let (xx,yy) = pixel_of_point fs.po fs.sz p' in
             let _ = plot xx yy
              in urs p' (i-1)
