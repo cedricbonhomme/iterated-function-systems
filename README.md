@@ -7,3 +7,5 @@ In your OCaml interpreter type:
 # #use "ifs_fractals.ml";;
 # tracer barnsley 200000;;
 ```
+
+![Barnsley Fern](example/barnsley.png "Barnsley Fern")
