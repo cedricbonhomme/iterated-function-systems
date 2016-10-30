@@ -20,7 +20,7 @@ open_graph " 400x640";;
 
 let pixel_of_point po sz p =
     (int_of_float((p.x-.po.x)/.sz.x*.float_of_int(size_x())),
-    int_of_float((p.y-.po.y)/.sz.y*.float_of_int(size_x())));;
+    int_of_float((p.y-.po.y)/.sz.y*.float_of_int(size_y())));;
 
 let trace fs n =
  let _ = clear_graph () in
