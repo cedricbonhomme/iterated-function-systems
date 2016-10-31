@@ -10,8 +10,7 @@ In your OCaml interpreter type:
 
 ![Barnsley Fern](example/barnsley.png "Barnsley Fern")
 
-
-This work has been realized during a functional programming practical course.
+This work was carried out during a functional programming course.
 
 Some information about Iterated Function Systems (with the Barnsley Fern):
 
