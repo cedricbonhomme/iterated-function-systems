@@ -24,3 +24,4 @@ Alternatives
 
 * IFS in Common Lisp: https://github.com/jl2/ifs-qt
 * J: https://news.ycombinator.com/item?id=12803076
+* Barnsley Fern in G'MIC: https://rosettacode.org/wiki/Barnsley_fern#G.27MIC
