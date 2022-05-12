@@ -1,6 +1,17 @@
 Iterated Function Systems with OCaml
 ====================================
 
+```bash
+$ sudo apt install ocaml opam
+$ opam install graphics
+$ opam install ocamlfind
+$ eval `opam config env`
+$ ocaml
+        OCaml version 4.11.1
+
+# 
+```
+
 In your OCaml interpreter type:
 
 ```ocaml

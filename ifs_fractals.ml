@@ -1,4 +1,5 @@
-#load "graphics.cma";;
+#use "topfind";;
+#require "graphics";;
 
 type point = { x: float; y: float}
 
