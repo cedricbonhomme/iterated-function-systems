@@ -1,5 +1,6 @@
-Iterated Function Systems with OCaml
-====================================
+# Iterated Function Systems with OCaml
+
+### In your shell
 
 ```bash
 $ sudo apt install ocaml opam
@@ -12,14 +13,19 @@ $ ocaml
 # 
 ```
 
-In your OCaml interpreter type:
+### In your OCaml interpreter
 
 ```ocaml
 # #use "ifs_fractals.ml";;
 # trace barnsley 200000;;
 ```
 
+### Result
+
 ![Barnsley Fern](example/barnsley.png "Barnsley Fern")
+
+
+## Resources
 
 This work was carried out during a functional programming course.
 
@@ -30,8 +36,8 @@ Some information about Iterated Function Systems (with the Barnsley Fern):
 * https://web.archive.org/web/20160401092248/http://mathcurve.com/fractals/fougere/fougere.shtml
 * https://web.archive.org/web/20160401180724/http://charles.vassallo.pagesperso-orange.fr/fr/art/ifs.html
 
-Alternatives
-------------
+
+## Alternatives
 
 * IFS in Common Lisp: https://github.com/jl2/ifs-qt
 * J: https://news.ycombinator.com/item?id=12803076
