@@ -1,5 +1,16 @@
 # Iterated Function Systems with OCaml
 
+Fractals are images of infinite complexity, characterized by being "similar" to
+themselves in some sense at all scales of magnification.
+
+Iterated function systems are a method of generating fractals using
+self-similarity. An IFS image is defined as being the sum of geometric
+transforms of itself. It turns out that simply specifying the transforms along
+with a weight for each transform is enough to determine the image.
+
+
+## How to use this code
+
 ### In your shell
 
 ```bash
@@ -17,7 +28,7 @@ $ ocaml
 
 ```ocaml
 # #use "ifs_fractals.ml";;
-# trace barnsley 200000;;
+# draw barnsley 200000;;
 ```
 
 ### Result
