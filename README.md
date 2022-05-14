@@ -18,7 +18,7 @@ $ sudo apt install ocaml opam
 $ opam init
 $ opam install graphics
 $ opam install ocamlfind
-$ eval `opam config env`
+$ eval $(opam env)
 $ ocaml
         OCaml version 4.11.1
 
