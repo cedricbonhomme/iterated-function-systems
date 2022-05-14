@@ -15,6 +15,7 @@ with a weight for each transform is enough to determine the image.
 
 ```bash
 $ sudo apt install ocaml opam
+$ opam init
 $ opam install graphics
 $ opam install ocamlfind
 $ eval `opam config env`
