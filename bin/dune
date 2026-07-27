@@ -1,0 +1,4 @@
+(executable
+ (name main)
+ (public_name ifs-fractals)
+ (libraries ifs_fractals graphics))

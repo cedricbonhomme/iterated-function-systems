@@ -1,0 +1,4 @@
+(library
+ (name ifs_fractals)
+ (public_name ifs-fractals)
+ (libraries graphics))

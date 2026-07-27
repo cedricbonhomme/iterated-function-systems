@@ -62,11 +62,51 @@ Sixteen fractals are predefined:
 
 ## How to use this code
 
-### Installation
+A graphical display is required in all cases: the fractals are drawn in a
+400x640 window of the OCaml [graphics](https://github.com/ocaml/graphics)
+library.
 
-The program uses the OCaml [graphics](https://github.com/ocaml/graphics)
-library, installed through [opam](https://opam.ocaml.org), the OCaml package
-manager. On Debian/Ubuntu:
+### Installation with opam
+
+The project is packaged as `ifs-fractals` for
+[opam](https://opam.ocaml.org), the OCaml package manager:
+
+```bash
+$ opam install ifs-fractals
+```
+
+This installs the `ifs-fractals` command:
+
+```bash
+$ ifs-fractals barnsley           # draw a fractal
+$ ifs-fractals --list             # list the sixteen available fractals
+$ ifs-fractals -n 1000000 lace    # override the number of plotted points
+```
+
+### In your OCaml interpreter
+
+The package also provides a library, so you can play from the interactive
+toplevel:
+
+```ocaml
+$ ocaml
+# #use "topfind";;
+# #require "ifs-fractals";;
+# open Ifs_fractals;;
+# draw barnsley 200000;;
+```
+
+`draw` takes a fractal and the number of points to plot — try smaller values
+like `20000` to watch the image build up, or replace `barnsley` with any of
+the predefined fractals above. The result:
+
+![Barnsley Fern](example/barnsley.png "Barnsley Fern")
+
+### From a clone of the repository
+
+The historical workflow (this project started in 2010 as a single toplevel
+script) still works without installing the package. Install the
+dependencies once — on Debian/Ubuntu:
 
 ```bash
 $ sudo apt install ocaml opam
@@ -75,35 +115,24 @@ $ opam install graphics ocamlfind
 $ eval $(opam env)
 ```
 
-`eval $(opam env)` makes the opam-installed libraries visible to the current
-shell; run it again in any new terminal (or let `opam init` add it to your
-shell profile).
-
-### In your OCaml interpreter
-
-The script is meant to be loaded in the interactive toplevel (it opens a
-graphics window, so a graphical display is required):
-
-```bash
-$ ocaml
-        OCaml version 5.3.0
-```
+then, from the repository root:
 
 ```ocaml
+$ ocaml
 # #use "ifs_fractals.ml";;
 # draw barnsley 200000;;
 ```
 
-The first line loads the script and opens a 400x640 graphics window. `draw`
-takes a fractal and the number of points to plot — try smaller values like
-`20000` to watch the image build up, or replace `barnsley` with any of the
-predefined fractals above. The result:
+You can also build and run the executable with dune:
 
-![Barnsley Fern](example/barnsley.png "Barnsley Fern")
+```bash
+$ dune exec -- ifs-fractals lace
+```
 
 ### Defining your own fractal
 
-Add a new `ifs` record following the same pattern as the predefined ones:
+Add a new `ifs` record in `lib/ifs_fractals.ml` following the same pattern
+as the predefined ones:
 choose your affine transforms, give them cumulative probabilities ending at
 `1.0`, and pick `po`/`sz` so that the attractor fits in the displayed region.
 Transform coefficients for many classic fractals can be found in the resources
