@@ -92,7 +92,9 @@ $ ocaml
 The first line loads the script and opens a 400x640 graphics window. `draw`
 takes a fractal and the number of points to plot — try smaller values like
 `20000` to watch the image build up, or replace `barnsley` with any of the
-predefined fractals above.
+predefined fractals above. The result:
+
+![Barnsley Fern](example/barnsley.png "Barnsley Fern")
 
 ### Defining your own fractal
 
@@ -136,10 +138,6 @@ resemblance is there:
 Because the symmetry map eats more than half of the random picks without
 plotting anything new, this fractal needs more iterations than the others to
 fill in — `draw vegvisir 500000;;` is a good start.
-
-### Result
-
-![Barnsley Fern](example/barnsley.png "Barnsley Fern")
 
 
 ## Resources
