@@ -35,7 +35,7 @@ In the code (`ifs_fractals.ml`), a fractal is described by an `ifs` record:
 
 ### Available fractals
 
-Eleven classic fractals are predefined:
+Thirteen fractals are predefined:
 
 * `barnsley` — the Barnsley fern, the most famous IFS fractal (pictured below);
 * `sierpinski` — the Sierpiński triangle;
@@ -47,7 +47,10 @@ Eleven classic fractals are predefined:
 * `crystal` — a crystal-like shape;
 * `binary` — a binary branching pattern;
 * `galaxy` — a spiral galaxy;
-* `koch` — the Koch curve.
+* `koch` — the Koch curve;
+* `maple` — a maple leaf;
+* `fiddlehead` — the coiled tip of a young fern frond, a spiral made of
+  spirals.
 
 
 ## How to use this code
