@@ -54,9 +54,10 @@ Sixteen fractals are predefined:
 * `vegvisir` — an eight-armed rune star inspired by the Icelandic vegvísir
   stave (see "A challenge: the vegvísir" below);
 * `sunflower` — a flower head built on phyllotaxis: buds placed by the golden
-  angle (137.5°), each bud a miniature rosette of rosettes;
+  angle, each bud a miniature rosette of rosettes;
 * `lace` — Queen Anne's lace (wild carrot): an umbel of umbels, where every
-  flower cluster on the dome is a whole miniature of the plant.
+  flower cluster on the dome is a whole miniature of the plant (both are
+  detailed in "Fractals from nature" below).
 
 
 ## How to use this code
@@ -142,6 +143,41 @@ resemblance is there:
 Because the symmetry map eats more than half of the random picks without
 plotting anything new, this fractal needs more iterations than the others to
 fill in — `draw vegvisir 500000;;` is a good start.
+
+### Fractals from nature
+
+The vegvísir experiment taught a lesson: designed symbols resist IFS, while
+things that *grow* embrace it. This is no accident. A plant does not follow a
+blueprint of its final shape; it grows by repeating simple local rules —
+sprout, shrink, turn, repeat. Its final form is the accumulation of the same
+rule applied at every scale, which is exactly what an IFS attractor is: the
+fern is not *like* a fractal, it is the fixed point of a handful of affine
+maps, and so, in a very real sense, are the plants themselves. That is why
+the most convincing images in this collection — the fern, the maple leaf, the
+tree — take so few numbers to describe, and why Barnsley needed only four
+transforms and twenty-four coefficients to capture a fern.
+
+Two more fractals push this idea further.
+
+`sunflower` is phyllotaxis distilled to two transforms. The first rotates
+by the golden angle — 137.508°, the angle real plants use to place successive
+seeds and florets — while contracting slightly toward the center. Because the
+golden angle is the "most irrational" angle, consecutive buds never line up
+into spokes; they fill the disk evenly, exactly as in a real sunflower head
+or a romanesco. The second transform plants a bud at the rim, and since every
+bud is a copy of the whole attractor, each one is a rosette made of rosettes:
+
+![Sunflower](example/sunflower.png "Golden-angle phyllotaxis")
+
+`lace` is Queen Anne's lace (wild carrot), whose flower is an *umbel*: a dome
+of stalks radiating from one point, each stalk ending in a smaller umbel,
+each of those in smaller umbels still — an umbrella made of umbrellas. Five
+transforms place shrunken, slightly rotated copies of the entire plant along
+the rim of the dome, and a sixth squashes the whole image into the thin stem:
+
+![Queen Anne's lace](example/lace.png "An umbel of umbels")
+
+Draw them with `draw sunflower 500000;;` and `draw lace 300000;;`.
 
 
 ## Resources
