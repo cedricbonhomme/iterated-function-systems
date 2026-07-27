@@ -35,7 +35,7 @@ In the code (`ifs_fractals.ml`), a fractal is described by an `ifs` record:
 
 ### Available fractals
 
-Thirteen fractals are predefined:
+Fourteen fractals are predefined:
 
 * `barnsley` — the Barnsley fern, the most famous IFS fractal (pictured below);
 * `sierpinski` — the Sierpiński triangle;
@@ -50,7 +50,9 @@ Thirteen fractals are predefined:
 * `koch` — the Koch curve;
 * `maple` — a maple leaf;
 * `fiddlehead` — the coiled tip of a young fern frond, a spiral made of
-  spirals.
+  spirals;
+* `vegvisir` — an eight-armed rune star inspired by the Icelandic vegvísir
+  stave (see "A challenge: the vegvísir" below).
 
 
 ## How to use this code
@@ -99,6 +101,41 @@ choose your affine transforms, give them cumulative probabilities ending at
 `1.0`, and pick `po`/`sz` so that the attractor fits in the displayed region.
 Transform coefficients for many classic fractals can be found in the resources
 below.
+
+### A challenge: the vegvísir
+
+The `vegvisir` fractal was born from a challenge: could an IFS draw something
+like the vegvísir, the Icelandic "wayfinder" stave (famously tattooed on
+Björk's arm)?
+
+Strictly speaking, no. An IFS attractor is a single self-similar set — the
+image is a union of shrunken copies of *itself* — while the real vegvísir has
+a *different* rune at the end of each of its eight arms. That asymmetry is
+simply out of reach for an IFS.
+
+What is reachable is a symmetric idealization, built with two tricks:
+
+* **A symmetry map.** The first transform is a pure 45° rotation with scale
+  1.0. It is not a contraction and draws nothing by itself: it only teleports
+  points between the eight arms, so whatever the other transforms create gets
+  replicated all around the circle. It carries most of the probability
+  (0.58), tuned so that all eight arms come out equally dense.
+* **Arm-motif maps.** The remaining transforms draw a single arm: one
+  squashes the whole image into a thin shaft, two plant crossbars at
+  different radii (each crossbar being itself a squashed, 90°-rotated copy of
+  the entire symbol, which decorates it with rune-like detail for free), one
+  places a miniature of the whole symbol at the arm's tip, and a last one
+  fills the center.
+
+The result is not a vegvísir — more an eight-armed rune compass whose every
+arm ends in an infinitely recursive copy of the whole — but the family
+resemblance is there:
+
+![Vegvísir](example/vegvisir.png "An IFS take on the vegvísir")
+
+Because the symmetry map eats more than half of the random picks without
+plotting anything new, this fractal needs more iterations than the others to
+fill in — `draw vegvisir 500000;;` is a good start.
 
 ### Result
 
