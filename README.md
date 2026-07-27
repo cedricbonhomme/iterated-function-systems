@@ -35,7 +35,7 @@ In the code (`ifs_fractals.ml`), a fractal is described by an `ifs` record:
 
 ### Available fractals
 
-Fourteen fractals are predefined:
+Sixteen fractals are predefined:
 
 * `barnsley` — the Barnsley fern, the most famous IFS fractal (pictured below);
 * `sierpinski` — the Sierpiński triangle;
@@ -52,7 +52,11 @@ Fourteen fractals are predefined:
 * `fiddlehead` — the coiled tip of a young fern frond, a spiral made of
   spirals;
 * `vegvisir` — an eight-armed rune star inspired by the Icelandic vegvísir
-  stave (see "A challenge: the vegvísir" below).
+  stave (see "A challenge: the vegvísir" below);
+* `sunflower` — a flower head built on phyllotaxis: buds placed by the golden
+  angle (137.5°), each bud a miniature rosette of rosettes;
+* `lace` — Queen Anne's lace (wild carrot): an umbel of umbels, where every
+  flower cluster on the dome is a whole miniature of the plant.
 
 
 ## How to use this code
