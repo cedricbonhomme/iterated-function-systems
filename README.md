@@ -1,5 +1,7 @@
 # Iterated Function Systems with OCaml
 
+[![opam package](https://img.shields.io/badge/opam-ifs--fractals-orange)](https://opam.ocaml.org/packages/ifs-fractals/)
+
 Fractals are images of infinite complexity, characterized by being "similar" to
 themselves in some sense at all scales of magnification.
 
