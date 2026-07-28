@@ -1,7 +1,5 @@
 # Building New IFS Attractors: a Working Vocabulary of Affine Maps
 
-[![DOI](https://img.shields.io/badge/DOI-10.13140%2FRG.2.2.32826.56004-blue)](https://doi.org/10.13140/RG.2.2.32826.56004)
-
 A paper on the *inverse* problem of iterated function systems: given a shape
 in mind, how does one write the affine coefficients that produce it?
 
@@ -40,8 +38,7 @@ ifs-fractals lace
 
 ## Reading it
 
-The built PDF is `main.pdf` in this directory, and the published version is
-archived at [doi.org/10.13140/RG.2.2.32826.56004](https://doi.org/10.13140/RG.2.2.32826.56004).
+The built PDF is `main.pdf` in this directory.
 
 A narrative account of how the new attractors were designed is on the
 author's blog:
@@ -73,7 +70,6 @@ Files:
   author = {C{\'e}dric Bonhomme},
   title  = {Building New {IFS} Attractors: a Working Vocabulary of Affine Maps},
   year   = {2026},
-  doi    = {10.13140/RG.2.2.32826.56004},
-  url    = {https://doi.org/10.13140/RG.2.2.32826.56004}
+  url    = {https://github.com/cedricbonhomme/iterated-function-systems/tree/master/paper}
 }
 ```

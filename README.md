@@ -216,9 +216,7 @@ Draw them with `draw sunflower 500000;;` and `draw lace 300000;;`.
 The design techniques behind the fractals added in 2026 (stem maps, spiral
 generators, radial replication, golden-angle maps and non-contracting
 symmetry maps) are written up in a short paper,
-[*Building New IFS Attractors: a Working Vocabulary of Affine Maps*](paper/),
-also archived at
-[doi.org/10.13140/RG.2.2.32826.56004](https://doi.org/10.13140/RG.2.2.32826.56004).
+[*Building New IFS Attractors: a Working Vocabulary of Affine Maps*](paper/).
 
 
 ## Resources
