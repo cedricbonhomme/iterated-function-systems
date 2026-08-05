@@ -1,7 +1,7 @@
 # Iterated Function Systems with OCaml
 
 [![opam package](https://img.shields.io/badge/opam-ifs--fractals-orange)](https://opam.ocaml.org/packages/ifs-fractals/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21804779.svg)](https://doi.org/10.5281/zenodo.21804779)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21804778.svg)](https://doi.org/10.5281/zenodo.21804778)
 
 Fractals are images of infinite complexity, characterized by being "similar" to
 themselves in some sense at all scales of magnification.
@@ -247,7 +247,7 @@ generators, radial replication, golden-angle maps and non-contracting
 symmetry maps) are written up in a short paper,
 [*Building New IFS Attractors: a Working Vocabulary of Affine Maps*](paper/),
 also archived at
-[doi.org/10.5281/zenodo.21804779](https://doi.org/10.5281/zenodo.21804779).
+[doi.org/10.5281/zenodo.21804778](https://doi.org/10.5281/zenodo.21804778).
 
 
 ## Resources

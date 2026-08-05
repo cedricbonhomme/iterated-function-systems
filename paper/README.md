@@ -1,6 +1,6 @@
 # Building New IFS Attractors: a Working Vocabulary of Affine Maps
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21804779.svg)](https://doi.org/10.5281/zenodo.21804779)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21804778.svg)](https://doi.org/10.5281/zenodo.21804778)
 
 A paper on the *inverse* problem of iterated function systems: given a shape
 in mind, how does one write the affine coefficients that produce it?
@@ -42,7 +42,7 @@ ifs-fractals lace
 
 The built PDF is `main.pdf` in this directory, and the published version is
 archived on Zenodo at
-[doi.org/10.5281/zenodo.21804779](https://doi.org/10.5281/zenodo.21804779).
+[doi.org/10.5281/zenodo.21804778](https://doi.org/10.5281/zenodo.21804778).
 
 A narrative account of how the new attractors were designed is on the
 author's blog:
@@ -74,7 +74,7 @@ Files:
   author = {C{\'e}dric Bonhomme},
   title  = {Building New {IFS} Attractors: a Working Vocabulary of Affine Maps},
   year   = {2026},
-  doi    = {10.5281/zenodo.21804779},
-  url    = {https://doi.org/10.5281/zenodo.21804779}
+  doi    = {10.5281/zenodo.21804778},
+  url    = {https://doi.org/10.5281/zenodo.21804778}
 }
 ```
