@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software and the paper (see preferred-citation)."
+title: "ifs-fractals: IFS fractals (the Barnsley fern and friends) drawn with the chaos game"
+type: software
+authors:
+  - family-names: Bonhomme
+    given-names: "Cédric"
+    email: cedric@cedricbonhomme.org
+repository-code: "https://github.com/cedricbonhomme/iterated-function-systems"
+license: GPL-3.0-or-later
+version: 1.1.0
+date-released: 2026-08-05
+keywords:
+  - iterated function systems
+  - fractals
+  - chaos game
+  - attractor
+  - OCaml
+preferred-citation:
+  type: generic
+  title: "Building New IFS Attractors: a Working Vocabulary of Affine Maps"
+  authors:
+    - family-names: Bonhomme
+      given-names: "Cédric"
+      email: cedric@cedricbonhomme.org
+  year: 2026
+  doi: 10.5281/zenodo.21804779
+  url: "https://doi.org/10.5281/zenodo.21804779"
