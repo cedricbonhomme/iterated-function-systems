@@ -2,6 +2,8 @@
 
 [![opam package](https://img.shields.io/badge/opam-ifs--fractals-orange)](https://opam.ocaml.org/packages/ifs-fractals/)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21804779.svg)](https://doi.org/10.5281/zenodo.21804779)
+
 Fractals are images of infinite complexity, characterized by being "similar" to
 themselves in some sense at all scales of magnification.
 
