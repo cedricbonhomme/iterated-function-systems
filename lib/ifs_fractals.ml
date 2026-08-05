@@ -48,16 +48,17 @@ let draw fs n =
    let (xx,yy) = pixel_of_point fs.po fs.sz p in
     Graphics.plot xx yy)
 
-(* Off-screen rendering: the same chaos game plotted into a width*height
-   bitmap (row 0 at the top, 1 = plotted point) instead of a window. *)
+(* Off-screen rendering: the same chaos game accumulated into a
+   width*height array of per-pixel hit counts (row 0 at the top). *)
 let render ?(width=400) ?(height=640) fs n =
-    let bitmap = Bytes.make (width*height) '\000' in
+    let hits = Array.make (width*height) 0 in
     iterate fs n (fun p ->
      let xx = int_of_float((p.x-.fs.po.x)/.fs.sz.x*.float_of_int width)
      and yy = int_of_float((p.y-.fs.po.y)/.fs.sz.y*.float_of_int height) in
       if xx >= 0 && xx < width && yy >= 0 && yy < height then
-       Bytes.set bitmap ((height-1-yy)*width+xx) '\001');
-    bitmap
+       let k = (height-1-yy)*width+xx in
+        hits.(k) <- hits.(k) + 1);
+    hits
 
 (* A minimal PNG writer, so images can be produced without a display and
    without any dependency beyond the standard library. The pixel data is
@@ -94,20 +95,9 @@ let add_chunk buf tag data =
     Buffer.add_string buf data;
     add_be32 buf (crc32 (tag ^ data))
 
-(* Render fs with n points and write it to file as an 8-bit grayscale PNG
-   (black points on white), like a screenshot of the graphics window. *)
-let save_png ?(width=400) ?(height=640) fs n file =
-    let bitmap = render ~width ~height fs n in
-    (* scanlines, each prefixed with the "no filter" byte *)
-    let raw = Buffer.create ((width+1)*height) in
-    for row = 0 to height-1 do
-     Buffer.add_char raw '\000';
-     for col = 0 to width-1 do
-      Buffer.add_char raw
-       (if Bytes.get bitmap (row*width+col) = '\001' then '\000' else '\255')
-     done
-    done;
-    let raw = Buffer.contents raw in
+(* Write raw scanline data (each row prefixed with its filter byte) as an
+   8-bit PNG of the given color type (0 = grayscale, 2 = RGB). *)
+let output_png file width height color_type raw =
     (* zlib stream: header, stored deflate blocks of at most 64KB, adler32 *)
     let idat = Buffer.create (String.length raw + 64) in
     Buffer.add_string idat "\x78\x01";
@@ -127,7 +117,9 @@ let save_png ?(width=400) ?(height=640) fs n file =
     let ihdr = Buffer.create 13 in
     add_be32 ihdr width;
     add_be32 ihdr height;
-    Buffer.add_string ihdr "\x08\x00\x00\x00\x00"; (* 8-bit grayscale *)
+    Buffer.add_char ihdr '\x08'; (* 8 bits per sample *)
+    Buffer.add_char ihdr (Char.chr color_type);
+    Buffer.add_string ihdr "\x00\x00\x00";
     let png = Buffer.create (Buffer.length idat + 64) in
     Buffer.add_string png "\x89PNG\r\n\x1a\n";
     add_chunk png "IHDR" (Buffer.contents ihdr);
@@ -136,6 +128,50 @@ let save_png ?(width=400) ?(height=640) fs n file =
     let oc = open_out_bin file in
     Buffer.output_buffer oc png;
     close_out oc
+
+(* Color ramp for density rendering, light to dark on the white
+   background (from the YlGnBu sequential palette). *)
+let density_ramp =
+    [| (199,233,180); (127,205,187); (65,182,196); (29,145,192);
+       (34,94,168); (8,29,88) |]
+
+let ramp_color t =
+    let m = Array.length density_ramp - 1 in
+    let s = t *. float_of_int m in
+    let i = min (m-1) (int_of_float s) in
+    let f = s -. float_of_int i in
+    let mix a b = int_of_float (float_of_int a +. f *. float_of_int (b-a)) in
+    let (r1,g1,b1) = density_ramp.(i) and (r2,g2,b2) = density_ramp.(i+1) in
+    (mix r1 r2, mix g1 g2, mix b1 b2)
+
+(* Render fs with n points and write it to file as a PNG. By default the
+   image is black points on white, like a screenshot of the graphics
+   window; with ~color:true each pixel is instead colored by how often
+   the chaos game visited it, on a log scale from light (rarely) to dark
+   (constantly) — revealing the density structure of the attractor. *)
+let save_png ?(width=400) ?(height=640) ?(color=false) fs n file =
+    let hits = render ~width ~height fs n in
+    let maxhits = Array.fold_left max 1 hits in
+    let logmax = log (1.0 +. float_of_int maxhits) in
+    (* scanlines, each prefixed with the "no filter" byte *)
+    let raw = Buffer.create ((width*3+1)*height) in
+    for row = 0 to height-1 do
+     Buffer.add_char raw '\000';
+     for col = 0 to width-1 do
+      let c = hits.(row*width+col) in
+       if not color then
+        Buffer.add_char raw (if c > 0 then '\000' else '\255')
+       else if c = 0 then
+        Buffer.add_string raw "\255\255\255"
+       else
+        let (r,g,b) = ramp_color (log (1.0 +. float_of_int c) /. logmax) in
+         Buffer.add_char raw (Char.chr r);
+         Buffer.add_char raw (Char.chr g);
+         Buffer.add_char raw (Char.chr b)
+     done
+    done;
+    output_png file width height (if color then 2 else 0)
+     (Buffer.contents raw)
 
 let barnsley =
 { po = {x= -2.25 ; y= -0.50};

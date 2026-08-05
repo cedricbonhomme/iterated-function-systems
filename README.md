@@ -86,11 +86,22 @@ $ ifs-fractals --list             # list the sixteen available fractals
 $ ifs-fractals -n 1000000 lace    # override the number of plotted points
 $ ifs-fractals -o fern.png barnsley            # render to a PNG file instead
 $ ifs-fractals -o big.png -s 800x1280 maple    # ... at a custom size
+$ ifs-fractals -o fern.png -c barnsley         # ... colored by point density
 ```
 
 Rendering with `-o` does not open a window and works without a display,
 so it can run on a headless server. The PNG writer is built into the
 library — no image library is needed.
+
+With `-c`, instead of plotting every point black, each pixel is colored by
+how often the chaos game visited it, on a log scale from light green
+(rarely) to dark blue (constantly). This reveals a structure that the flat
+rendering hides: the attractor is not uniformly dense, and the regions the
+transforms visit most — stems, midribs, spiral tips — stand out darkest.
+Density rendering benefits from more points than the defaults, e.g.
+`-n 1000000`:
+
+![Barnsley Fern colored by density](example/barnsley-color.png "The fern's density structure")
 
 ### In your OCaml interpreter
 
@@ -114,6 +125,7 @@ the window's 400x640):
 ```ocaml
 # save_png barnsley 200000 "fern.png";;
 # save_png ~width:800 ~height:1280 maple 200000 "maple.png";;
+# save_png ~color:true barnsley 1000000 "fern-density.png";;
 ```
 
 The result:

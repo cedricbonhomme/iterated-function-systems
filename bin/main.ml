@@ -1,6 +1,6 @@
 let usage_msg =
   "Draw an IFS fractal in a graphics window, or render it to a PNG file.\n\
-   Usage: ifs-fractals [-n N] [-o FILE [-s WxH]] FRACTAL\n"
+   Usage: ifs-fractals [-n N] [-o FILE [-s WxH] [-c]] FRACTAL\n"
 
 let () =
   let iterations = ref 0 in
@@ -8,6 +8,7 @@ let () =
   let chosen = ref None in
   let output = ref None in
   let size = ref (400, 640) in
+  let color = ref false in
   let set_size s =
     let dims =
       match String.index_opt s 'x' with
@@ -28,6 +29,8 @@ let () =
        "FILE Write a PNG image to FILE instead of opening a window");
       ("-s", Arg.String set_size,
        "WxH Size of the image written with -o (default: 400x640)");
+      ("-c", Arg.Set color,
+       " Color the image written with -o by point density");
       ("--list", Arg.Set list_only, " List the available fractals and exit") ]
   in
   Arg.parse spec (fun s -> chosen := Some s) usage_msg;
@@ -54,10 +57,13 @@ let () =
             match !output with
             | Some file ->
                 let width, height = !size in
-                Ifs_fractals.save_png ~width ~height fs n file;
+                Ifs_fractals.save_png ~width ~height ~color:!color fs n file;
                 Printf.printf "Wrote %s (%dx%d, %d points).\n" file width
                   height n
             | None -> (
+                if !color then
+                  prerr_endline
+                    "Warning: -c only applies to images written with -o.";
             try
               Ifs_fractals.draw fs n;
               print_endline
