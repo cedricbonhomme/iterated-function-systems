@@ -1,4 +1,4 @@
-# 1.1.0 (unreleased)
+# 1.1.0 (2026-08-05)
 
 - Fractals can now be rendered to PNG files without a graphical display:
   `ifs-fractals -o fern.png barnsley` from the command line (with an

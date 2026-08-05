@@ -14,12 +14,14 @@
  (synopsis "IFS fractals (the Barnsley fern and friends) drawn with the chaos game")
  (description
   "Draws fractals defined by iterated function systems (IFS) in an OCaml \
-   Graphics window, using the chaos game. Sixteen fractals are predefined \
-   (the Barnsley fern, the Sierpinski triangle, a dragon curve, a maple \
-   leaf, a sunflower, Queen Anne's lace, ...), available both from the \
-   ifs-fractals command-line tool and as a library for the toplevel. \
-   Defining a new fractal is a small record: a handful of affine \
-   transforms with their weights and a viewport.")
+   Graphics window, or renders them to PNG files (optionally colored by \
+   point density, and with no display needed), using the chaos game. \
+   Sixteen fractals are predefined (the Barnsley fern, the Sierpinski \
+   triangle, a dragon curve, a maple leaf, a sunflower, Queen Anne's \
+   lace, ...), available both from the ifs-fractals command-line tool and \
+   as a library for the toplevel. Defining a new fractal is a small \
+   record: a handful of affine transforms with their weights and a \
+   viewport.")
  (tags (fractals graphics chaos-game ifs))
  (depends
   (ocaml (>= 4.09))
