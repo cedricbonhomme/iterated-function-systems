@@ -70,11 +70,15 @@ Files:
 ## Citing it
 
 ```bibtex
-@misc{bonhomme2026ifs,
-  author = {C{\'e}dric Bonhomme},
-  title  = {Building New {IFS} Attractors: a Working Vocabulary of Affine Maps},
-  year   = {2026},
-  doi    = {10.5281/zenodo.21804778},
-  url    = {https://doi.org/10.5281/zenodo.21804778}
+@misc{https://doi.org/10.5281/zenodo.21804778,
+  doi       = {10.5281/ZENODO.21804778},
+  url       = {https://zenodo.org/doi/10.5281/zenodo.21804778},
+  author    = {Bonhomme, Cédric},
+  keywords  = {chaos, chaos-game, IFS, Fractals, Ocaml, Fractals, Iterated Function Systems},
+  language  = {en},
+  title     = {Building New IFS Attractors: a Working Vocabulary of Affine Maps},
+  publisher = {Zenodo},
+  year      = {2026},
+  copyright = {Creative Commons Attribution Share Alike 4.0 International}
 }
 ```

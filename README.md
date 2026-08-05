@@ -249,6 +249,35 @@ symmetry maps) are written up in a short paper,
 also archived at
 [doi.org/10.5281/zenodo.21804778](https://doi.org/10.5281/zenodo.21804778).
 
+```bibtex
+@misc{https://doi.org/10.5281/zenodo.21804778,
+  doi       = {10.5281/ZENODO.21804778},
+  url       = {https://zenodo.org/doi/10.5281/zenodo.21804778},
+  author    = {Bonhomme, Cédric},
+  keywords  = {chaos, chaos-game, IFS, Fractals, Ocaml, Fractals, Iterated Function Systems},
+  language  = {en},
+  title     = {Building New IFS Attractors: a Working Vocabulary of Affine Maps},
+  publisher = {Zenodo},
+  year      = {2026},
+  copyright = {Creative Commons Attribution Share Alike 4.0 International}
+}
+```
+
+An earlier report on fractal landscapes (in French), cited in the paper as
+the *statistically* self-similar counterpart of the exactly self-similar
+constructions used here:
+
+```bibtex
+@misc{bonhomme2008paysagesfractals,
+  title    = {Les paysages fractals},
+  author   = {Bonhomme, Cédric and Bettinger, Jean-Charles},
+  year     = {2008},
+  url      = {https://www.cedricbonhomme.org/files/publications/2008/Les-paysages-fractals.pdf},
+  note     = {Université Paul-Verlaine de Metz, Metz, France},
+  language = {fr}
+}
+```
+
 
 ## Resources
 
