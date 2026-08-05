@@ -1,3 +1,10 @@
+# 1.1.0 (unreleased)
+
+- Fractals can now be rendered to PNG files without a graphical display:
+  `ifs-fractals -o fern.png barnsley` from the command line (with an
+  optional `-s WIDTHxHEIGHT`), or `save_png` from the library. The PNG
+  writer is self-contained — no new dependency.
+
 # 1.0.0 (2026-07-27)
 
 First release on opam, sixteen years after the first commit.

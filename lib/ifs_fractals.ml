@@ -31,16 +31,111 @@ let pixel_of_point po sz p =
     (int_of_float((p.x-.po.x)/.sz.x*.float_of_int(Graphics.size_x())),
     int_of_float((p.y-.po.y)/.sz.y*.float_of_int(Graphics.size_y())))
 
-let draw fs n =
- if not !window_open then init ();
- let _ = Graphics.clear_graph () in
+(* The chaos game itself: iterate the IFS n times from an arbitrary
+   starting point, handing every visited point to plot. *)
+let iterate fs n plot =
   let rec urs pt = function
    | 0 -> ()
    | i -> let p' = (select_image pt (Random.float 1.0) fs.lt) in
-           let (xx,yy) = pixel_of_point fs.po fs.sz p' in
-            let _ = Graphics.plot xx yy
-             in urs p' (i-1)
+           let _ = plot p'
+            in urs p' (i-1)
   in urs {x= 1.0; y= 1.0} n
+
+let draw fs n =
+ if not !window_open then init ();
+ let _ = Graphics.clear_graph () in
+  iterate fs n (fun p ->
+   let (xx,yy) = pixel_of_point fs.po fs.sz p in
+    Graphics.plot xx yy)
+
+(* Off-screen rendering: the same chaos game plotted into a width*height
+   bitmap (row 0 at the top, 1 = plotted point) instead of a window. *)
+let render ?(width=400) ?(height=640) fs n =
+    let bitmap = Bytes.make (width*height) '\000' in
+    iterate fs n (fun p ->
+     let xx = int_of_float((p.x-.fs.po.x)/.fs.sz.x*.float_of_int width)
+     and yy = int_of_float((p.y-.fs.po.y)/.fs.sz.y*.float_of_int height) in
+      if xx >= 0 && xx < width && yy >= 0 && yy < height then
+       Bytes.set bitmap ((height-1-yy)*width+xx) '\001');
+    bitmap
+
+(* A minimal PNG writer, so images can be produced without a display and
+   without any dependency beyond the standard library. The pixel data is
+   wrapped in stored (uncompressed) deflate blocks, which the PNG format
+   accepts. Checksums are computed in plain ints, masked to 32 bits. *)
+
+let crc_table = Array.init 256 (fun n ->
+    let c = ref n in
+    for _ = 0 to 7 do
+     c := (if !c land 1 = 1 then 0xEDB88320 lxor (!c lsr 1) else !c lsr 1)
+    done; !c)
+
+let crc32 s =
+    let c = ref 0xFFFFFFFF in
+    String.iter (fun ch ->
+     c := crc_table.((!c lxor Char.code ch) land 0xFF) lxor (!c lsr 8)) s;
+    !c lxor 0xFFFFFFFF
+
+let adler32 s =
+    let a = ref 1 and b = ref 0 in
+    String.iter (fun ch ->
+     a := (!a + Char.code ch) mod 65521;
+     b := (!b + !a) mod 65521) s;
+    (!b lsl 16) lor !a
+
+let add_be32 buf v =
+    for k = 3 downto 0 do
+     Buffer.add_char buf (Char.chr ((v lsr (8*k)) land 0xFF))
+    done
+
+let add_chunk buf tag data =
+    add_be32 buf (String.length data);
+    Buffer.add_string buf tag;
+    Buffer.add_string buf data;
+    add_be32 buf (crc32 (tag ^ data))
+
+(* Render fs with n points and write it to file as an 8-bit grayscale PNG
+   (black points on white), like a screenshot of the graphics window. *)
+let save_png ?(width=400) ?(height=640) fs n file =
+    let bitmap = render ~width ~height fs n in
+    (* scanlines, each prefixed with the "no filter" byte *)
+    let raw = Buffer.create ((width+1)*height) in
+    for row = 0 to height-1 do
+     Buffer.add_char raw '\000';
+     for col = 0 to width-1 do
+      Buffer.add_char raw
+       (if Bytes.get bitmap (row*width+col) = '\001' then '\000' else '\255')
+     done
+    done;
+    let raw = Buffer.contents raw in
+    (* zlib stream: header, stored deflate blocks of at most 64KB, adler32 *)
+    let idat = Buffer.create (String.length raw + 64) in
+    Buffer.add_string idat "\x78\x01";
+    let len = String.length raw in
+    let pos = ref 0 in
+    while !pos < len do
+     let blk = min 65535 (len - !pos) in
+     Buffer.add_char idat (if !pos + blk = len then '\001' else '\000');
+     Buffer.add_char idat (Char.chr (blk land 0xFF));
+     Buffer.add_char idat (Char.chr (blk lsr 8));
+     Buffer.add_char idat (Char.chr ((lnot blk) land 0xFF));
+     Buffer.add_char idat (Char.chr (((lnot blk) lsr 8) land 0xFF));
+     Buffer.add_substring idat raw !pos blk;
+     pos := !pos + blk
+    done;
+    add_be32 idat (adler32 raw);
+    let ihdr = Buffer.create 13 in
+    add_be32 ihdr width;
+    add_be32 ihdr height;
+    Buffer.add_string ihdr "\x08\x00\x00\x00\x00"; (* 8-bit grayscale *)
+    let png = Buffer.create (Buffer.length idat + 64) in
+    Buffer.add_string png "\x89PNG\r\n\x1a\n";
+    add_chunk png "IHDR" (Buffer.contents ihdr);
+    add_chunk png "IDAT" (Buffer.contents idat);
+    add_chunk png "IEND" "";
+    let oc = open_out_bin file in
+    Buffer.output_buffer oc png;
+    close_out oc
 
 let barnsley =
 { po = {x= -2.25 ; y= -0.50};
