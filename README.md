@@ -272,7 +272,8 @@ constructions used here:
   title    = {Les paysages fractals},
   author   = {Bonhomme, Cédric and Bettinger, Jean-Charles},
   year     = {2008},
-  url      = {https://www.cedricbonhomme.org/files/publications/2008/Les-paysages-fractals.pdf},
+  doi      = {10.5281/zenodo.21821796},
+  url      = {https://doi.org/10.5281/zenodo.21821796},
   note     = {Université Paul-Verlaine de Metz, Metz, France},
   language = {fr}
 }
