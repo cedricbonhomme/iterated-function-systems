@@ -18,7 +18,8 @@
   The format's plain weights are converted to cumulative thresholds (or
   derived from each map's determinant when the file gives none), and the
   viewport, which the format does not record, is fitted to the attractor
-  by `fit`. `example/classics.ifs` holds a few classic systems.
+  by `fit`. `example/classics.ifs` collects a dozen classic systems to
+  try it on.
 - Three-dimensional systems — Fractint's `(3D)` entries, twelve or
   thirteen numbers per transform — are read and drawn as well, projected
   orthographically from a direction given by `-v YAW,PITCH` in degrees

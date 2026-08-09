@@ -1,4 +1,5 @@
-; A few classic iterated function systems in the Fractint .ifs format.
+; A dozen classic iterated function systems, flat and solid, in the
+; Fractint .ifs format.
 ; Draw one with:  ifs-fractals -f example/classics.ifs fern
 ;
 ; Each line is one affine map: a b c d e f [probability], meaning

@@ -252,9 +252,12 @@ From the library, `load_fractint` returns every system in a file, ready to
 draw:
 
 ```ocaml
-# List.iter (fun (name, fs) -> print_endline name) (load_fractint "classics.ifs");;
-# let (_, fern) = List.hd (load_fractint "classics.ifs") in draw fern 200000;;
+# List.iter (fun (name, _) -> print_endline name) (load_fractint "classics.ifs");;
+# let (_, fern) = List.hd (load_fractint "classics.ifs") in draw_system fern 200000;;
 ```
+
+Each is a `system`: `Flat` for the two-dimensional ones, `Solid` for those
+below. `draw_system`, `show_system` and `save_png_system` take either.
 
 #### Systems in space
 
