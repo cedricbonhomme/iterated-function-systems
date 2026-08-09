@@ -183,6 +183,56 @@ choose your affine transforms, give them cumulative probabilities ending at
 Transform coefficients for many classic fractals can be found in the resources
 below.
 
+### Fractint .ifs files
+
+Fractals can also be read from a file in the `.ifs` format of
+[Fractint](https://fractint.org), the venerable DOS fractal generator —
+a de-facto standard, so the many collections of `.ifs` files published
+over the years can be drawn directly:
+
+```bash
+$ ifs-fractals -f example/classics.ifs --list    # what the file contains
+$ ifs-fractals -f example/classics.ifs fern      # draw one of them
+$ ifs-fractals -f my.ifs -o out.png -c fern      # ... or render it to a PNG
+```
+
+The name can be omitted when the file holds a single fractal. The format
+is plain text: a name, then one affine map per line between braces, then
+a closing brace. Anything after a `;` is a comment.
+
+```
+fern {                          ; Barnsley's Black Spleenwort
+  0    0    0    .16 0 0    .01
+  .85  .04 -.04  .85 0 1.6  .85
+  .2  -.26  .23  .22 0 1.6  .07
+ -.15  .28  .26  .24 0 .44  .07
+}
+```
+
+Each line is `a b c d e f` — meaning `x' = a*x + b*y + e` and
+`y' = c*x + d*y + f`, so the coefficients come in a different order than
+in an `ifs` record — followed by an optional probability. Two things the
+format leaves out are filled in when loading:
+
+* **Probabilities.** They are plain weights here, not cumulative, and they
+  may be missing entirely; in that case each map is weighted by the area
+  it covers (the absolute value of its determinant), which is what makes
+  the chaos game fill the attractor evenly.
+* **The viewport.** A `.ifs` file says nothing about which part of the
+  plane to look at, so the chaos game is run briefly to find where the
+  attractor actually lives, and the viewport is fitted around it.
+
+From the library, `load_fractint` returns every system in a file, ready to
+draw:
+
+```ocaml
+# List.iter (fun (name, fs) -> print_endline name) (load_fractint "classics.ifs");;
+# let (_, fern) = List.hd (load_fractint "classics.ifs") in draw fern 200000;;
+```
+
+Only two-dimensional systems are supported: Fractint's 3D entries (thirteen
+numbers per line) are rejected with an explanatory message.
+
 ### A challenge: the vegvísir
 
 The `vegvisir` fractal was born from a challenge: could an IFS draw something

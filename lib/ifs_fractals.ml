@@ -1,7 +1,8 @@
 (* Iterated function systems: the chaos game, and everything that draws
-   its attractors — on screen or into a PNG file. The fractals themselves
-   live in fractals.ml, whose types and values are re-exported here so
-   that Ifs_fractals remains the single entry point of the library.
+   its attractors — on screen, into a PNG file, or read from a Fractint
+   file. The fractals themselves live in fractals.ml, whose types and
+   values are re-exported here so that Ifs_fractals remains the single
+   entry point of the library.
 
    This file is both the library module Ifs_fractals and the file loaded
    by the toplevel script at the repository root, so it must stay
@@ -182,3 +183,150 @@ let save_png ?(width=400) ?(height=640) ?(color=false) fs n file =
     done;
     output_png file width height (if color then 2 else 0)
      (Buffer.contents raw)
+
+(* Fractint .ifs files: one or more named systems, one transform per line
+   between braces, as six or seven numbers separated by spaces, tabs or
+   commas, and ';' starting a comment.
+
+       fern {                          ; Barnsley's Black Spleenwort
+         0    0    0    .16 0 0    .01
+         .85  .04 -.04  .85 0 1.6  .85
+       }
+
+   A line reads a b c d e f, meaning x' = a*x + b*y + e and
+   y' = c*x + d*y + f — a different order than our kf — plus an optional
+   probability. The probabilities are plain weights rather than our
+   cumulative thresholds, and the format has no viewport at all, so both
+   are derived below. *)
+
+exception Ifs_error of string
+
+let ifs_error fmt = Printf.ksprintf (fun s -> raise (Ifs_error s)) fmt
+
+(* The words of one line, comment dropped and braces isolated. *)
+let words line =
+    let line =
+     match String.index_opt line ';' with
+     | Some i -> String.sub line 0 i
+     | None -> line in
+    let b = Buffer.create (String.length line) in
+    String.iter (function
+     | '{' | '}' as c -> Buffer.add_char b ' '; Buffer.add_char b c;
+                         Buffer.add_char b ' '
+     | ',' | '\t' | '\r' -> Buffer.add_char b ' '
+     | c -> Buffer.add_char b c) line;
+    List.filter (fun w -> w <> "") (String.split_on_char ' ' (Buffer.contents b))
+
+(* Split the text into entries: a name and the rows of numbers between its
+   braces, one transform per line, each row tagged with its line. *)
+let group_entries text =
+    let entries = ref [] and name = ref [] and rows = ref [] in
+    let inside = ref false in
+    List.iteri (fun i line ->
+     let l = i + 1 in
+     let row = ref [] in
+     let end_row () =
+      if !row <> [] then rows := (l, List.rev !row) :: !rows;
+      row := [] in
+     List.iter (fun w ->
+      match w with
+      | "{" when !inside -> ifs_error "line %d: unexpected '{'" l
+      | "{" -> inside := true
+      | "}" when not !inside ->
+         ifs_error "line %d: '}' without a matching '{'" l
+      | "}" ->
+         end_row ();
+         entries :=
+          (String.concat " " (List.rev !name), List.rev !rows) :: !entries;
+         name := []; rows := []; inside := false
+      | w when not !inside -> name := w :: !name
+      | w ->
+         (match float_of_string_opt w with
+          | Some v -> row := v :: !row
+          | None -> ifs_error "line %d: %S is not a number" l w))
+      (words line);
+     end_row ())
+     (String.split_on_char '\n' text);
+    if !inside then ifs_error "unexpected end of file: '}' expected";
+    if !name <> [] then ifs_error "unexpected end of file: '{' expected";
+    List.rev !entries
+
+(* One row of numbers: the coefficients in our own order, and the
+   probability the file gave, if any. *)
+let transfo_of_row (l, vs) =
+    match vs with
+    | [a; b; c; d; e; f] -> ([|a; b; e; c; d; f|], None)
+    | [a; b; c; d; e; f; p] -> ([|a; b; e; c; d; f|], Some p)
+    | _ when List.length vs = 13 ->
+       ifs_error
+        "line %d: this is a 3D IFS (13 numbers per transform), which is \
+         not supported" l
+    | _ -> ifs_error "line %d: expected 6 or 7 numbers per transform, got %d"
+            l (List.length vs)
+
+(* Turn the file's weights into our cumulative thresholds. A file may give
+   no probabilities at all; each transform is then weighted by the area it
+   covers — the absolute value of its determinant — which is what makes
+   the chaos game fill the attractor evenly. *)
+let cumulate rows =
+    let sum = List.fold_left (+.) 0.0 in
+    let stated = List.map (function (_, Some p) -> p | (_, None) -> 0.0) rows
+    and areas = List.map (fun (kf, _) ->
+                 abs_float (kf.(0)*.kf.(4) -. kf.(1)*.kf.(3))) rows in
+    let ws =
+     if List.for_all (fun (_, p) -> p <> None) rows && sum stated > 0.0
+      then stated
+     else if sum areas > 0.0 then areas
+     else List.map (fun _ -> 1.0) rows in
+    let total = sum ws and acc = ref 0.0 and last = List.length rows - 1 in
+    List.mapi (fun i ((kf, _), w) ->
+     acc := !acc +. w;
+     {pb = (if i = last then 1.0 else !acc /. total); kf})
+     (List.combine rows ws)
+
+(* A Fractint file says nothing about which part of the plane to show, so
+   run the chaos game once to find where the attractor actually lives and
+   frame it. The first points are dropped: they are the transient before
+   the orbit settles onto the attractor. aspect is the width/height ratio
+   of the target image, matched so the picture is not distorted. *)
+let fit ?(samples=20_000) ?(margin=0.04) ?(aspect=400.0/.640.0) fs =
+    let minx = ref infinity and maxx = ref neg_infinity
+    and miny = ref infinity and maxy = ref neg_infinity and seen = ref 0 in
+    iterate fs samples (fun p ->
+     incr seen;
+     if !seen > 100 then begin
+      if p.x < !minx then minx := p.x;
+      if p.x > !maxx then maxx := p.x;
+      if p.y < !miny then miny := p.y;
+      if p.y > !maxy then maxy := p.y
+     end);
+    if not (Float.is_finite !minx && Float.is_finite !maxx
+            && Float.is_finite !miny && Float.is_finite !maxy) then
+     ifs_error
+      "the transforms do not settle on an attractor: the points escape to \
+       infinity";
+    let span a b = let d = b -. a in
+     (if d > 0.0 then d else 1.0) *. (1.0 +. 2.0 *. margin) in
+    let w = span !minx !maxx and h = span !miny !maxy in
+    let (w, h) = if w /. h > aspect then (w, w /. aspect) else (h *. aspect, h) in
+    let cx = (!minx +. !maxx) /. 2.0 and cy = (!miny +. !maxy) /. 2.0 in
+    {fs with po = {x = cx -. w /. 2.0; y = cy -. h /. 2.0};
+             sz = {x = w; y = h}}
+
+(* Parse the contents of a Fractint .ifs file: every named system it
+   holds, with a viewport fitted to its attractor. *)
+let parse_fractint ?samples ?margin ?aspect text =
+    let entry (name, rows) =
+     if rows = [] then ifs_error "%S: no transform" name;
+     let name = if name = "" then "unnamed" else name in
+     let fs = {po = {x= 0.0; y= 0.0}; sz = {x= 1.0; y= 1.0};
+               lt = cumulate (List.map transfo_of_row rows)} in
+      (name, fit ?samples ?margin ?aspect fs)
+    in List.map entry (group_entries text)
+
+let load_fractint ?samples ?margin ?aspect file =
+    let ic = open_in_bin file in
+    let text =
+     Fun.protect ~finally:(fun () -> close_in_noerr ic)
+      (fun () -> really_input_string ic (in_channel_length ic)) in
+    parse_fractint ?samples ?margin ?aspect text

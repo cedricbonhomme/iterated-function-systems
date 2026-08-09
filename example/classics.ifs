@@ -1,0 +1,32 @@
+; A few classic iterated function systems in the Fractint .ifs format.
+; Draw one with:  ifs-fractals -f example/classics.ifs fern
+;
+; Each line is one affine map: a b c d e f [probability], meaning
+; x' = a*x + b*y + e and y' = c*x + d*y + f. The probability is optional;
+; without it, each map is weighted by the area it covers.
+
+fern {                          ; Barnsley's Black Spleenwort
+  0    0    0    .16 0 0    .01
+  .85  .04 -.04  .85 0 1.6  .85
+  .2  -.26  .23  .22 0 1.6  .07
+ -.15  .28  .26  .24 0 .44  .07
+}
+
+sierpinski {                    ; the Sierpinski triangle
+  .5 0 0 .5 0    0
+  .5 0 0 .5 .5   0
+  .5 0 0 .5 .25  .433
+}
+
+koch {                          ; the Koch snowflake curve
+  .333  0     0     .333  0     0
+  .167 -.289  .289  .167  .333  0
+  .167  .289 -.289  .167  .5    .289
+  .333  0     0     .333  .667  0
+}
+
+spiral {                        ; a logarithmic spiral of spirals
+  .787879 -.424242  .242424  .859848  1.758647  1.408065  .90
+ -.121212  .257576  .151515  .053030 -6.721654  1.377236  .05
+  .181818 -.136364  .090909  .181818  6.086107  1.568035  .05
+}

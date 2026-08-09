@@ -13,6 +13,12 @@
   or by the window manager — `draw` failed with `Graphic_failure "graphic
   screen not opened"` instead of opening a new window. `window_open` is now
   a function that asks the graphics library rather than a stale flag.
+- Fractals can be read from Fractint `.ifs` files: `ifs-fractals -f
+  FILE.ifs NAME` from the command line, `load_fractint` from the library.
+  The format's plain weights are converted to cumulative thresholds (or
+  derived from each map's determinant when the file gives none), and the
+  viewport, which the format does not record, is fitted to the attractor
+  by `fit`. `example/classics.ifs` holds a few classic systems.
 
 # 1.1.0 (2026-08-05)
 
