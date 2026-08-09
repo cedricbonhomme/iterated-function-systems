@@ -27,7 +27,9 @@ Whatever the starting point, the plotted points quickly converge onto the
 *attractor* of the system — the fractal image. More iterations simply fill in
 the picture with more detail.
 
-In the code (`ifs_fractals.ml`), a fractal is described by an `ifs` record:
+In the code, a fractal is described by an `ifs` record. The records live in
+`lib/fractals.ml`, apart from the algorithms that draw them in
+`lib/ifs_fractals.ml`:
 
 * `lt` — the list of affine transforms. Each transform has a coefficient array
   `kf = [|a; b; c; d; e; f|]` meaning `x' = a*x + b*y + c` and
@@ -162,8 +164,8 @@ $ dune exec -- ifs-fractals lace
 
 ### Defining your own fractal
 
-Add a new `ifs` record in `lib/ifs_fractals.ml` following the same pattern
-as the predefined ones:
+Add a new `ifs` record in `lib/fractals.ml` — which holds nothing but the
+fractals themselves — following the same pattern as the predefined ones:
 choose your affine transforms, give them cumulative probabilities ending at
 `1.0`, and pick `po`/`sz` so that the attractor fits in the displayed region.
 Transform coefficients for many classic fractals can be found in the resources

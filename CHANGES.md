@@ -1,3 +1,12 @@
+# 1.2.0 (unreleased)
+
+- The predefined fractals moved out of `lib/ifs_fractals.ml` into their own
+  `lib/fractals.ml`, together with the `point`, `transfo` and `ifs` types,
+  so that adding or tuning a fractal no longer touches the code that draws
+  it. `Ifs_fractals` re-exports them, so the library API is unchanged, and
+  so is the toplevel workflow (the loader now uses `#mod_use` for the new
+  file).
+
 # 1.1.0 (2026-08-05)
 
 - Fractals can now be rendered to PNG files without a graphical display:
