@@ -13,6 +13,33 @@ scaling, rotation and translation) that maps the whole image onto one of its
 parts. It turns out that simply specifying the transforms along
 with a weight for each transform is enough to determine the image.
 
+![Barnsley Fern colored by density](example/barnsley-color.png "The fern's density structure")
+
+This project draws them, as an OCaml library and a command-line tool
+packaged together for opam under the name `ifs-fractals`. It offers:
+
+* **Sixteen predefined fractals** — the Barnsley fern, the Sierpiński
+  triangle, a dragon curve, a maple leaf, a sunflower, Queen Anne's lace
+  and others, listed below.
+* **Two ways to draw them.** In a window of the OCaml `graphics` library,
+  or straight into a PNG file, which needs no graphical display at all and
+  so runs happily on a headless server. The PNG writer is part of the
+  library: no image dependency.
+* **Density coloring.** Instead of plotting every point in black, each
+  pixel can be shaded by how often the chaos game visited it, which brings
+  out the structure a flat rendering hides — stems, midribs and spiral
+  tips stand out darkest.
+* **Fractint `.ifs` files.** Beyond the built-in collection, the tool reads
+  the file format of [Fractint](https://fractint.org), the venerable DOS
+  fractal generator. That format became a de-facto way of exchanging
+  iterated function systems, so the collections published over the decades
+  can be drawn as they are, with `ifs-fractals -f somefile.ifs`. Since the
+  format records neither which part of the plane to look at nor how to
+  weight the maps when the weights are missing, both are worked out from
+  the attractor itself when the file is loaded.
+* **Your own fractals**, in a handful of numbers: a few affine maps with
+  their weights, and a viewport.
+
 
 ## How it works
 
@@ -101,10 +128,7 @@ how often the chaos game visited it, on a log scale from light green
 (rarely) to dark blue (constantly). This reveals a structure that the flat
 rendering hides: the attractor is not uniformly dense, and the regions the
 transforms visit most — stems, midribs, spiral tips — stand out darkest.
-Density rendering benefits from more points than the defaults, e.g.
-`-n 1000000`:
-
-![Barnsley Fern colored by density](example/barnsley-color.png "The fern's density structure")
+Density rendering benefits from more points than the defaults.
 
 ### In your OCaml interpreter
 
