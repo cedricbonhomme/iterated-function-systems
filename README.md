@@ -36,7 +36,9 @@ packaged together for opam under the name `ifs-fractals`. It offers:
   can be drawn as they are, with `ifs-fractals -f somefile.ifs`. Since the
   format records neither which part of the plane to look at nor how to
   weight the maps when the weights are missing, both are worked out from
-  the attractor itself when the file is loaded.
+  the attractor itself when the file is loaded. Its three-dimensional
+  systems are drawn too, projected from whatever direction you care to
+  look from.
 * **Your own fractals**, in a handful of numbers: a few affine maps with
   their weights, and a viewport.
 
@@ -254,8 +256,37 @@ draw:
 # let (_, fern) = List.hd (load_fractint "classics.ifs") in draw fern 200000;;
 ```
 
-Only two-dimensional systems are supported: Fractint's 3D entries (thirteen
-numbers per line) are rejected with an explanatory message.
+#### Systems in space
+
+Fractint files may also hold three-dimensional systems, marked `(3D)` after
+the name and written with twelve numbers per line — a 3x3 matrix, then a
+translation — plus the usual optional probability:
+
+```
+3dfern (3D) {
+   .00  .00 0 .0 .18 .0 0  0.0 0.00 0 0.0 0 .01
+   .85  .00 0 .0 .85 .1 0 -0.1 0.85 0 1.6 0 .85
+   .20 -.20 0 .2 .20 .0 0  0.0 0.30 0 0.8 0 .07
+  -.20  .20 0 .2 .20 .0 0  0.0 0.30 0 0.8 0 .07
+}
+```
+
+These are drawn too. The chaos game is played in space and the points it
+visits are flattened onto the picture as they are produced — the maps
+themselves cannot be flattened, since each mixes all three coordinates, so
+dropping the depth from them would describe a different system entirely.
+
+Which means there is a direction to choose. `-v YAW,PITCH` turns the
+attractor before flattening it, in degrees, and the viewport is refitted
+for whatever view you ask for:
+
+```bash
+$ ifs-fractals -f example/classics.ifs 3dfern            # seen head-on
+$ ifs-fractals -f example/classics.ifs -v 57,20 3dfern   # turned and tipped
+```
+
+Head-on, the 3D fern looks flat and symmetric; turned, it arches away from
+you and reveals that its fronds were never in one plane.
 
 ### A challenge: the vegvísir
 

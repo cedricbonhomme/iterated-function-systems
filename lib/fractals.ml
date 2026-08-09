@@ -15,6 +15,23 @@ type transfo = { pb: float; kf: float array}
 
 type ifs = { po: point; sz: point; lt: transfo list}
 
+(* Three-dimensional systems, as found in the (3D) entries of Fractint
+   files. kf3 is a 12-element array [|a; b; c; d; e; f; g; h; i; j; k; l|]
+   encoding x' = a*x + b*y + c*z + j, y' = d*x + e*y + f*z + k and
+   z' = g*x + h*y + i*z + l — the file's own order, unlike the flat kf.
+   The field names carry a 3 so as not to shadow the flat ones. *)
+type point3 = { x3: float; y3: float; z3: float}
+
+type transfo3 = { pb3: float; kf3: float array}
+
+(* A solid system carries no viewport: which part of space to show depends
+   on the direction it is looked at from, so the region is worked out once
+   the points have been projected. *)
+type ifs3 = { lt3: transfo3 list}
+
+(* Either kind of system — what reading a file gives back. *)
+type system = Flat of ifs | Solid of ifs3
+
 let barnsley =
 { po = {x= -2.25 ; y= -0.50};
 sz = {x= 5.00 ; y= 11.00};

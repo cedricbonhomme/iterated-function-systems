@@ -1,6 +1,7 @@
 let usage_msg =
   "Draw an IFS fractal in a graphics window, or render it to a PNG file.\n\
-   Usage: ifs-fractals [-n N] [-f FILE.ifs] [-o FILE [-s WxH] [-c]] FRACTAL\n"
+   Usage: ifs-fractals [-n N] [-f FILE.ifs] [-v YAW,PITCH] \
+   [-o FILE [-s WxH] [-c]] FRACTAL\n"
 
 let () =
   let iterations = ref 0 in
@@ -10,6 +11,21 @@ let () =
   let size = ref (400, 640) in
   let color = ref false in
   let from_file = ref None in
+  let view = ref (0.0, 0.0) in
+  let set_view s =
+    let angles =
+      match String.index_opt s ',' with
+      | Some i ->
+          ( float_of_string_opt (String.sub s 0 i),
+            float_of_string_opt
+              (String.sub s (i + 1) (String.length s - i - 1)) )
+      | None -> (float_of_string_opt s, Some 0.0)
+    in
+    let radians d = d *. Float.pi /. 180.0 in
+    match angles with
+    | Some yaw, Some pitch -> view := (radians yaw, radians pitch)
+    | _ -> raise (Arg.Bad ("bad view " ^ s ^ ", expected YAW,PITCH"))
+  in
   let set_size s =
     let dims =
       match String.index_opt s 'x' with
@@ -34,6 +50,9 @@ let () =
        "WxH Size of the image written with -o (default: 400x640)");
       ("-c", Arg.Set color,
        " Color the image written with -o by point density");
+      ("-v", Arg.String set_view,
+       "YAW,PITCH Angles in degrees a 3D fractal is viewed from \
+        (default: 0,0)");
       ("--list", Arg.Set list_only, " List the available fractals and exit") ]
   in
   Arg.parse spec (fun s -> chosen := Some s) usage_msg;
@@ -41,12 +60,15 @@ let () =
      Fractint file. A file gives no iteration count, so recommend one. *)
   let catalogue () =
     match !from_file with
-    | None -> Ifs_fractals.all
+    | None ->
+        List.map
+          (fun (name, fs, n) -> (name, Ifs_fractals.Flat fs, n))
+          Ifs_fractals.all
     | Some file ->
         let width, height = !size in
         let aspect = float_of_int width /. float_of_int height in
         List.map
-          (fun (name, fs) -> (name, fs, 300_000))
+          (fun (name, sys) -> (name, sys, 300_000))
           (Ifs_fractals.load_fractint ~aspect file)
   in
   let unknown name =
@@ -59,18 +81,25 @@ let () =
       | Some f -> Printf.sprintf "-f %s " (Filename.quote f));
     exit 1
   in
-  let show (_, fs, default_n) =
+  let show (_, sys, default_n) =
     let n = if !iterations > 0 then !iterations else default_n in
+    let yaw, pitch = !view in
+    (match (sys, !view) with
+    | Ifs_fractals.Flat _, (0.0, 0.0) -> ()
+    | Ifs_fractals.Flat _, _ ->
+        prerr_endline "Warning: -v only applies to 3D fractals."
+    | Ifs_fractals.Solid _, _ -> ());
     match !output with
     | Some file ->
         let width, height = !size in
-        Ifs_fractals.save_png ~width ~height ~color:!color fs n file;
+        Ifs_fractals.save_png_system ~width ~height ~color:!color ~yaw ~pitch
+          sys n file;
         Printf.printf "Wrote %s (%dx%d, %d points).\n" file width height n
     | None -> (
         if !color then
           prerr_endline "Warning: -c only applies to images written with -o.";
         try
-          Ifs_fractals.draw fs n;
+          Ifs_fractals.draw_system ~yaw ~pitch sys n;
           print_endline "Press any key in the window (or close it) to quit.";
           try ignore (Graphics.read_key ())
           with Graphics.Graphic_failure _ -> ()

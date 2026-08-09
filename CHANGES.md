@@ -19,6 +19,12 @@
   derived from each map's determinant when the file gives none), and the
   viewport, which the format does not record, is fitted to the attractor
   by `fit`. `example/classics.ifs` holds a few classic systems.
+- Three-dimensional systems — Fractint's `(3D)` entries, twelve or
+  thirteen numbers per transform — are read and drawn as well, projected
+  orthographically from a direction given by `-v YAW,PITCH` in degrees
+  (`?yaw` and `?pitch` in the library). Reading a file now returns a
+  `system`, either `Flat of ifs` or `Solid of ifs3`; `draw_system`,
+  `show_system` and `save_png_system` take either.
 
 # 1.1.0 (2026-08-05)
 

@@ -19,6 +19,21 @@ let rec select_image p rd = function
     | _::lt -> select_image p rd lt
     | [] -> raise Not_found
 
+exception Ifs_error of string
+
+let ifs_error fmt = Printf.ksprintf (fun s -> raise (Ifs_error s)) fmt
+
+(* The same two operations in space. *)
+let image3 k p =
+    { x3= k.(0)*.p.x3+.k.(1)*.p.y3+.k.(2)*.p.z3+.k.(9);
+    y3= k.(3)*.p.x3+.k.(4)*.p.y3+.k.(5)*.p.z3+.k.(10);
+    z3= k.(6)*.p.x3+.k.(7)*.p.y3+.k.(8)*.p.z3+.k.(11)}
+
+let rec select_image3 p rd = function
+    | t::_ when rd<=t.pb3 -> image3 t.kf3 p
+    | _::lt -> select_image3 p rd lt
+    | [] -> raise Not_found
+
 (* Ask the graphics library rather than remember: the window may have been
    closed behind our back, by close_graph or by the window manager. *)
 let window_open () =
@@ -42,6 +57,36 @@ let iterate fs n plot =
             in urs p' (i-1)
   in urs {x= 1.0; y= 1.0} n
 
+(* The chaos game in space. Its attractor cannot be drawn directly — the
+   maps mix all three coordinates, so dropping z from them would describe
+   a different system altogether. The game is played in space and only the
+   points it visits are flattened, by project below. *)
+let iterate3 fs n plot =
+  let rec urs pt = function
+   | 0 -> ()
+   | i -> let p' = (select_image3 pt (Random.float 1.0) fs.lt3) in
+           let _ = plot p'
+            in urs p' (i-1)
+  in urs {x3= 1.0; y3= 1.0; z3= 1.0} n
+
+(* Orthographic projection: turn the attractor by yaw around the vertical
+   axis, tip it by pitch, and drop the depth. Both angles are in radians;
+   at zero, x and y are kept as they are and z is what disappears. *)
+let project ?(yaw=0.0) ?(pitch=0.0) p =
+    let cy = cos yaw and sy = sin yaw
+    and cp = cos pitch and sp = sin pitch in
+    let x = cy*.p.x3 -. sy*.p.z3 in
+    let depth = sy*.p.x3 +. cy*.p.z3 in
+    {x = x; y = cp*.p.y3 -. sp*.depth}
+
+(* A source of plane points: something that plays the chaos game n times
+   and hands every point to a callback. Both kinds of system give one, so
+   everything downstream — framing, plotting, rendering — is shared. *)
+let source fs = iterate fs
+
+let source3 ?yaw ?pitch fs n plot =
+    iterate3 fs n (fun p -> plot (project ?yaw ?pitch p))
+
 let draw fs n =
  if not (window_open ()) then init ();
  let _ = Graphics.clear_graph () in
@@ -53,23 +98,27 @@ let draw fs n =
    library only handles events while the program is inside an event call,
    so this is also what makes the window manager's close button work: at
    the toplevel prompt nothing reads events and the window ignores it. *)
-let show fs n =
-    draw fs n;
+let wait_then_close () =
     (try ignore (Graphics.read_key ())
      with Graphics.Graphic_failure _ -> ());
     if window_open () then Graphics.close_graph ()
 
-(* Off-screen rendering: the same chaos game accumulated into a
+let show fs n = draw fs n; wait_then_close ()
+
+(* Off-screen rendering: the points of a source accumulated into a
    width*height array of per-pixel hit counts (row 0 at the top). *)
-let render ?(width=400) ?(height=640) fs n =
+let accumulate ?(width=400) ?(height=640) po sz src n =
     let hits = Array.make (width*height) 0 in
-    iterate fs n (fun p ->
-     let xx = int_of_float((p.x-.fs.po.x)/.fs.sz.x*.float_of_int width)
-     and yy = int_of_float((p.y-.fs.po.y)/.fs.sz.y*.float_of_int height) in
+    src n (fun p ->
+     let xx = int_of_float((p.x-.po.x)/.sz.x*.float_of_int width)
+     and yy = int_of_float((p.y-.po.y)/.sz.y*.float_of_int height) in
       if xx >= 0 && xx < width && yy >= 0 && yy < height then
        let k = (height-1-yy)*width+xx in
         hits.(k) <- hits.(k) + 1);
     hits
+
+let render ?width ?height fs n =
+    accumulate ?width ?height fs.po fs.sz (source fs) n
 
 (* A minimal PNG writer, so images can be produced without a display and
    without any dependency beyond the standard library. The pixel data is
@@ -160,8 +209,7 @@ let ramp_color t =
    window; with ~color:true each pixel is instead colored by how often
    the chaos game visited it, on a log scale from light (rarely) to dark
    (constantly) — revealing the density structure of the attractor. *)
-let save_png ?(width=400) ?(height=640) ?(color=false) fs n file =
-    let hits = render ~width ~height fs n in
+let encode ?(color=false) width height hits =
     let maxhits = Array.fold_left max 1 hits in
     let logmax = log (1.0 +. float_of_int maxhits) in
     (* scanlines, each prefixed with the "no filter" byte *)
@@ -181,8 +229,78 @@ let save_png ?(width=400) ?(height=640) ?(color=false) fs n file =
          Buffer.add_char raw (Char.chr b)
      done
     done;
+    Buffer.contents raw
+
+let save_png ?(width=400) ?(height=640) ?(color=false) fs n file =
     output_png file width height (if color then 2 else 0)
-     (Buffer.contents raw)
+     (encode ~color width height (render ~width ~height fs n))
+
+(* Neither a Fractint file nor a solid system says which part of the plane
+   to show, so run the chaos game once to find where the attractor lands
+   and frame it. The first points are dropped: they are the transient
+   before the orbit settles onto the attractor. aspect is the width/height
+   ratio of the target image, matched so the picture is not distorted. *)
+let viewport ?(samples=20_000) ?(margin=0.04) ?(aspect=400.0/.640.0) src =
+    let minx = ref infinity and maxx = ref neg_infinity
+    and miny = ref infinity and maxy = ref neg_infinity and seen = ref 0 in
+    src samples (fun p ->
+     incr seen;
+     if !seen > 100 then begin
+      if p.x < !minx then minx := p.x;
+      if p.x > !maxx then maxx := p.x;
+      if p.y < !miny then miny := p.y;
+      if p.y > !maxy then maxy := p.y
+     end);
+    if not (Float.is_finite !minx && Float.is_finite !maxx
+            && Float.is_finite !miny && Float.is_finite !maxy) then
+     ifs_error
+      "the transforms do not settle on an attractor: the points escape to \
+       infinity";
+    let span a b = let d = b -. a in
+     (if d > 0.0 then d else 1.0) *. (1.0 +. 2.0 *. margin) in
+    let w = span !minx !maxx and h = span !miny !maxy in
+    let (w, h) = if w /. h > aspect then (w, w /. aspect) else (h *. aspect, h) in
+    let cx = (!minx +. !maxx) /. 2.0 and cy = (!miny +. !maxy) /. 2.0 in
+    ({x = cx -. w /. 2.0; y = cy -. h /. 2.0}, {x = w; y = h})
+
+let fit ?samples ?margin ?aspect fs =
+    let (po, sz) = viewport ?samples ?margin ?aspect (source fs) in
+    {fs with po = po; sz = sz}
+
+(* The viewport of a solid system depends on where it is looked at from,
+   so it is derived per view rather than stored. *)
+let fit3 ?samples ?margin ?aspect ?yaw ?pitch fs =
+    viewport ?samples ?margin ?aspect (source3 ?yaw ?pitch fs)
+
+(* Drawing and rendering either kind of system. A flat one goes through
+   the plain path; a solid one is framed for the requested view first. *)
+let draw_system ?yaw ?pitch sys n =
+    match sys with
+    | Flat fs -> draw fs n
+    | Solid fs ->
+       if not (window_open ()) then init ();
+       let aspect = float_of_int (Graphics.size_x ())
+                    /. float_of_int (Graphics.size_y ()) in
+       let (po, sz) = fit3 ~aspect ?yaw ?pitch fs in
+       let _ = Graphics.clear_graph () in
+        source3 ?yaw ?pitch fs n (fun p ->
+         let (xx,yy) = pixel_of_point po sz p in
+          Graphics.plot xx yy)
+
+let show_system ?yaw ?pitch sys n =
+    draw_system ?yaw ?pitch sys n; wait_then_close ()
+
+let save_png_system ?(width=400) ?(height=640) ?(color=false) ?yaw ?pitch
+                    sys n file =
+    match sys with
+    | Flat fs -> save_png ~width ~height ~color fs n file
+    | Solid fs ->
+       let aspect = float_of_int width /. float_of_int height in
+       let (po, sz) = fit3 ~aspect ?yaw ?pitch fs in
+       let hits =
+        accumulate ~width ~height po sz (source3 ?yaw ?pitch fs) n in
+        output_png file width height (if color then 2 else 0)
+         (encode ~color width height hits)
 
 (* Fractint .ifs files: one or more named systems, one transform per line
    between braces, as six or seven numbers separated by spaces, tabs or
@@ -198,10 +316,6 @@ let save_png ?(width=400) ?(height=640) ?(color=false) fs n file =
    probability. The probabilities are plain weights rather than our
    cumulative thresholds, and the format has no viewport at all, so both
    are derived below. *)
-
-exception Ifs_error of string
-
-let ifs_error fmt = Printf.ksprintf (fun s -> raise (Ifs_error s)) fmt
 
 (* The words of one line, comment dropped and braces isolated. *)
 let words line =
@@ -251,77 +365,85 @@ let group_entries text =
     if !name <> [] then ifs_error "unexpected end of file: '{' expected";
     List.rev !entries
 
-(* One row of numbers: the coefficients in our own order, and the
-   probability the file gave, if any. *)
+(* One row of numbers: the coefficients, and the probability the file gave
+   if any. A flat transform is six numbers, which our kf reorders; a solid
+   one is twelve, which kf3 keeps as they come. Either may carry a
+   probability as one extra number. *)
 let transfo_of_row (l, vs) =
     match vs with
     | [a; b; c; d; e; f] -> ([|a; b; e; c; d; f|], None)
     | [a; b; c; d; e; f; p] -> ([|a; b; e; c; d; f|], Some p)
-    | _ when List.length vs = 13 ->
-       ifs_error
-        "line %d: this is a 3D IFS (13 numbers per transform), which is \
-         not supported" l
     | _ -> ifs_error "line %d: expected 6 or 7 numbers per transform, got %d"
             l (List.length vs)
 
+let transfo3_of_row (l, vs) =
+    match vs with
+    | [_;_;_;_;_;_;_;_;_;_;_;_] -> (Array.of_list vs, None)
+    | [a;b;c;d;e;f;g;h;i;j;k;m;p] ->
+       ([|a;b;c;d;e;f;g;h;i;j;k;m|], Some p)
+    | _ -> ifs_error
+            "line %d: expected 12 or 13 numbers per 3D transform, got %d"
+            l (List.length vs)
+
 (* Turn the file's weights into our cumulative thresholds. A file may give
-   no probabilities at all; each transform is then weighted by the area it
-   covers — the absolute value of its determinant — which is what makes
-   the chaos game fill the attractor evenly. *)
-let cumulate rows =
+   no probabilities at all; each transform is then weighted by the area —
+   the volume, in space — that it covers, the absolute value of its
+   determinant, which is what makes the chaos game fill the attractor
+   evenly. *)
+let thresholds rows extent =
     let sum = List.fold_left (+.) 0.0 in
     let stated = List.map (function (_, Some p) -> p | (_, None) -> 0.0) rows
-    and areas = List.map (fun (kf, _) ->
-                 abs_float (kf.(0)*.kf.(4) -. kf.(1)*.kf.(3))) rows in
+    and extents = List.map (fun (kf, _) -> extent kf) rows in
     let ws =
      if List.for_all (fun (_, p) -> p <> None) rows && sum stated > 0.0
       then stated
-     else if sum areas > 0.0 then areas
+     else if sum extents > 0.0 then extents
      else List.map (fun _ -> 1.0) rows in
     let total = sum ws and acc = ref 0.0 and last = List.length rows - 1 in
-    List.mapi (fun i ((kf, _), w) ->
+    List.mapi (fun i w ->
      acc := !acc +. w;
-     {pb = (if i = last then 1.0 else !acc /. total); kf})
-     (List.combine rows ws)
+     if i = last then 1.0 else !acc /. total) ws
 
-(* A Fractint file says nothing about which part of the plane to show, so
-   run the chaos game once to find where the attractor actually lives and
-   frame it. The first points are dropped: they are the transient before
-   the orbit settles onto the attractor. aspect is the width/height ratio
-   of the target image, matched so the picture is not distorted. *)
-let fit ?(samples=20_000) ?(margin=0.04) ?(aspect=400.0/.640.0) fs =
-    let minx = ref infinity and maxx = ref neg_infinity
-    and miny = ref infinity and maxy = ref neg_infinity and seen = ref 0 in
-    iterate fs samples (fun p ->
-     incr seen;
-     if !seen > 100 then begin
-      if p.x < !minx then minx := p.x;
-      if p.x > !maxx then maxx := p.x;
-      if p.y < !miny then miny := p.y;
-      if p.y > !maxy then maxy := p.y
-     end);
-    if not (Float.is_finite !minx && Float.is_finite !maxx
-            && Float.is_finite !miny && Float.is_finite !maxy) then
-     ifs_error
-      "the transforms do not settle on an attractor: the points escape to \
-       infinity";
-    let span a b = let d = b -. a in
-     (if d > 0.0 then d else 1.0) *. (1.0 +. 2.0 *. margin) in
-    let w = span !minx !maxx and h = span !miny !maxy in
-    let (w, h) = if w /. h > aspect then (w, w /. aspect) else (h *. aspect, h) in
-    let cx = (!minx +. !maxx) /. 2.0 and cy = (!miny +. !maxy) /. 2.0 in
-    {fs with po = {x = cx -. w /. 2.0; y = cy -. h /. 2.0};
-             sz = {x = w; y = h}}
+(* kf holds the plane matrix at 0,1 and 3,4; kf3 holds the space one in
+   its first nine slots. *)
+let area kf = abs_float (kf.(0)*.kf.(4) -. kf.(1)*.kf.(3))
+
+let volume k =
+    abs_float (k.(0)*.(k.(4)*.k.(8) -. k.(5)*.k.(7))
+            -. k.(1)*.(k.(3)*.k.(8) -. k.(5)*.k.(6))
+            +. k.(2)*.(k.(3)*.k.(7) -. k.(4)*.k.(6)))
+
+let cumulate rows =
+    List.map2 (fun (kf, _) pb -> {pb; kf}) rows (thresholds rows area)
+
+let cumulate3 rows =
+    List.map2 (fun (kf3, _) pb3 -> {pb3; kf3}) rows (thresholds rows volume)
+
+(* Fractint marks a solid system by writing (3D) after its name; the rows
+   give it away too, being twice as long. The marker is dropped from the
+   name, which is what one has to type to draw it. *)
+let clean_name name =
+    let kept =
+     List.filter (fun w -> String.lowercase_ascii w <> "(3d)")
+      (String.split_on_char ' ' name) in
+    match String.concat " " kept with "" -> "unnamed" | n -> n
 
 (* Parse the contents of a Fractint .ifs file: every named system it
-   holds, with a viewport fitted to its attractor. *)
+   holds. A flat one is framed here, since its viewport never changes; a
+   solid one is framed when drawn, once the view is known. *)
 let parse_fractint ?samples ?margin ?aspect text =
     let entry (name, rows) =
      if rows = [] then ifs_error "%S: no transform" name;
-     let name = if name = "" then "unnamed" else name in
-     let fs = {po = {x= 0.0; y= 0.0}; sz = {x= 1.0; y= 1.0};
-               lt = cumulate (List.map transfo_of_row rows)} in
-      (name, fit ?samples ?margin ?aspect fs)
+     let solid (_, vs) = List.length vs >= 12 in
+     let name = clean_name name in
+      if List.for_all solid rows then
+       (name, Solid {lt3 = cumulate3 (List.map transfo3_of_row rows)})
+      else if List.exists solid rows then
+       ifs_error "%S: mixes flat and 3D transforms" name
+      else
+       let fs = {po = {x= 0.0; y= 0.0}; sz = {x= 1.0; y= 1.0};
+                 lt = cumulate (List.map transfo_of_row rows)} in
+        (name, Flat (fit ?samples ?margin ?aspect fs))
     in List.map entry (group_entries text)
 
 let load_fractint ?samples ?margin ?aspect file =
