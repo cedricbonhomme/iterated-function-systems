@@ -121,9 +121,21 @@ $ ocaml
 
 `draw` takes a fractal and the number of points to plot — try smaller values
 like `20000` to watch the image build up, or replace `barnsley` with any of
-the predefined fractals above. To write a PNG file instead of drawing in a
-window, use `save_png` (with optional `~width` and `~height`, defaulting to
-the window's 400x640):
+the predefined fractals above.
+
+`draw` returns as soon as the picture is complete, leaving the window on
+screen. Note that its close button will not work then: the graphics library
+only handles events while the program is inside an event call, and at the
+toplevel prompt nothing is reading them. Close the window with
+`Graphics.close_graph ();;`, or use `show`, which draws, waits for a
+keypress — the close button works during that wait — and then closes:
+
+```ocaml
+# show barnsley 200000;;
+```
+
+To write a PNG file instead of drawing in a window, use `save_png` (with
+optional `~width` and `~height`, defaulting to the window's 400x640):
 
 ```ocaml
 # save_png barnsley 200000 "fern.png";;

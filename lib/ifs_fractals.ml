@@ -18,11 +18,14 @@ let rec select_image p rd = function
     | _::lt -> select_image p rd lt
     | [] -> raise Not_found
 
-let window_open = ref false
+(* Ask the graphics library rather than remember: the window may have been
+   closed behind our back, by close_graph or by the window manager. *)
+let window_open () =
+    try ignore (Graphics.size_x ()); true
+    with Graphics.Graphic_failure _ -> false
 
 let init ?(geometry=" 400x640") () =
-    Graphics.open_graph geometry;
-    window_open := true
+    Graphics.open_graph geometry
 
 let pixel_of_point po sz p =
     (int_of_float((p.x-.po.x)/.sz.x*.float_of_int(Graphics.size_x())),
@@ -39,11 +42,21 @@ let iterate fs n plot =
   in urs {x= 1.0; y= 1.0} n
 
 let draw fs n =
- if not !window_open then init ();
+ if not (window_open ()) then init ();
  let _ = Graphics.clear_graph () in
   iterate fs n (fun p ->
    let (xx,yy) = pixel_of_point fs.po fs.sz p in
     Graphics.plot xx yy)
+
+(* Draw, then wait for a keypress before closing the window. The graphics
+   library only handles events while the program is inside an event call,
+   so this is also what makes the window manager's close button work: at
+   the toplevel prompt nothing reads events and the window ignores it. *)
+let show fs n =
+    draw fs n;
+    (try ignore (Graphics.read_key ())
+     with Graphics.Graphic_failure _ -> ());
+    if window_open () then Graphics.close_graph ()
 
 (* Off-screen rendering: the same chaos game accumulated into a
    width*height array of per-pixel hit counts (row 0 at the top). *)

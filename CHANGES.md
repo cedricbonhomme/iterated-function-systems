@@ -6,6 +6,13 @@
   it. `Ifs_fractals` re-exports them, so the library API is unchanged, and
   so is the toplevel workflow (the loader now uses `#mod_use` for the new
   file).
+- `show fs n` draws a fractal, waits for a keypress and closes the window.
+  Unlike `draw`, it leaves the program inside an event call, which is what
+  lets the window manager's close button work.
+- Fixed: after the graphics window was closed — by `Graphics.close_graph`
+  or by the window manager — `draw` failed with `Graphic_failure "graphic
+  screen not opened"` instead of opening a new window. `window_open` is now
+  a function that asks the graphics library rather than a stale flag.
 
 # 1.1.0 (2026-08-05)
 
