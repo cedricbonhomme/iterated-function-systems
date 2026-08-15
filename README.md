@@ -2,6 +2,7 @@
 
 [![opam package](https://img.shields.io/badge/opam-ifs--fractals-orange)](https://opam.ocaml.org/packages/ifs-fractals/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21804778.svg)](https://doi.org/10.5281/zenodo.21804778)
+[![tests](https://github.com/cedricbonhomme/iterated-function-systems/actions/workflows/tests.yml/badge.svg)](https://github.com/cedricbonhomme/iterated-function-systems/actions/workflows/tests.yml)
 
 Fractals are images of infinite complexity, characterized by being "similar" to
 themselves in some sense at all scales of magnification.
@@ -205,6 +206,9 @@ The tests come with it, and need no display:
 ```bash
 $ dune test
 ```
+
+They also run on GitHub Actions, on OCaml 4.14 and 5.3, for every push
+and pull request.
 
 ### Defining your own fractal
 

@@ -1,0 +1,42 @@
+# Builds the package and runs `dune test` on every push and pull request.
+# The suite needs no display, so nothing here starts an X server — but the
+# graphics library still has to compile, which is why libX11 and libXft
+# are pulled in as depexts by setup-ocaml.
+
+name: tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        # The package declares OCaml >= 4.09; these are a stable 4.x and
+        # the current 5.x. Older compilers no longer build reliably on
+        # the runners' toolchain, so the floor is not exercised here.
+        ocaml-compiler: ["4.14", "5.3"]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          dune-cache: true
+
+      - run: opam install --deps-only --with-test .
+
+      - run: opam exec -- dune build
+
+      - run: opam exec -- dune test
+
+      # What opam itself runs when the package is installed with its
+      # tests: catches a build that only works from a clone.
+      - run: opam exec -- dune build -p ifs-fractals @install @runtest
