@@ -1,5 +1,14 @@
 # 1.2.0 (unreleased)
 
+- Fixed: `sierpinski` drew an empty window and `koch` a speck in the
+  middle of one. Both had their coefficients written in the order of a
+  Fractint table — `a b c d e f` for `x' = a*x + b*y + e` — rather than
+  the order of `kf`, so neither described the fractal it was named after,
+  and neither landed in the region its record asked to display. The
+  transforms are reordered and both viewports now frame the attractor:
+  `sierpinski` is the triangle on (0,0), (2,0), (1, √3), and `koch` the
+  curve from (0,0) to (1,0). This had been the case since the first
+  commit, in 2010.
 - The predefined fractals moved out of `lib/ifs_fractals.ml` into their own
   `lib/fractals.ml`, together with the `point`, `transfo` and `ifs` types,
   so that adding or tuning a fractal no longer touches the code that draws
