@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-An OCaml project that draws fractals using Iterated Function Systems (IFS), rendered with the OCaml `graphics` library. It is packaged with dune as the `ifs-fractals` opam package: a library (`lib/`, module `Ifs_fractals`) plus a command-line executable (`bin/`). There are no tests and no lint setup.
+An OCaml project that draws fractals using Iterated Function Systems (IFS), rendered with the OCaml `graphics` library. It is packaged with dune as the `ifs-fractals` opam package: a library (`lib/`, module `Ifs_fractals`), a command-line executable (`bin/`) and a test suite (`test/`). There is no lint setup.
 
 ## Building and running
 
@@ -12,6 +12,7 @@ Dependencies (one-time setup): `opam install dune graphics ocamlfind`, then `eva
 
 - `dune build` — builds the library, the executable, and regenerates `ifs-fractals.opam` from `dune-project`.
 - `dune exec -- ifs-fractals lace` — draws a fractal (requires a graphical display). Also `--list`, `-n N` to override the iteration count, and `-o FILE` (plus optional `-s WxH`) to render a PNG headlessly instead — use that to test rendering without a display.
+- `dune test` — runs the test suite (493 checks). It needs no display and runs in a twentieth of a second.
 - Historical toplevel workflow, from the repo root: `ocaml`, then `#use "ifs_fractals.ml";;` and `draw barnsley 200000;;`. The root `ifs_fractals.ml` is only a loader: it `#mod_use`s `lib/fractals.ml` (so the module `Fractals` exists) then `#use`s `lib/ifs_fractals.ml`, and opens the Graphics window. Loading `lib/ifs_fractals.ml` on its own fails — it starts with `include Fractals`.
 
 ## Code structure
@@ -27,5 +28,7 @@ The library is two files, both kept directive-free so they work compiled and in 
 - 3D: `point3`, `transfo3` (12-element `kf3`, the file's own order: 3x3 matrix then translation), `ifs3` (`lt3` only — no viewport, since it depends on the view). `iterate3` plays the chaos game in space and `project ?yaw ?pitch` flattens each point; the maps themselves must never be flattened, as each mixes all three coordinates. `source`/`source3` turn either kind into a stream of plane points, which `accumulate`, `viewport` and `encode` then share. `fit3` gives a per-view viewport. `system = Flat of ifs | Solid of ifs3`, handled by `draw_system`, `show_system` and `save_png_system` (all `?yaw ?pitch`).
 - `load_fractint ?samples ?margin ?aspect file` / `parse_fractint` — read Fractint `.ifs` files, returning `(name, system)` pairs. Note the coefficient order differs from `kf`: a file's `a b c d e f` maps to `[|a; b; e; c; d; f|]`. Plain weights become cumulative `pb` thresholds (weighted by `|det|` when the file gives none), and `fit ?samples ?margin ?aspect fs` derives the viewport by sampling the attractor, since the format has none. Errors raise `Ifs_error`. Entries whose rows are 12+ numbers become `Solid`, the `(3D)` marker being stripped from the name; mixing arities in one entry is an error. `example/classics.ifs` is a sample file, including a 3D one.
 - Predefined `ifs` values (all in `fractals.ml`): `barnsley`, `sierpinski`, `dragon`, `coral`, `tree`, `star`, `zigzag`, `crystal`, `binary`, `galaxy`, `koch`, `maple`, `fiddlehead`, `sunflower`, `lace`, `vegvisir` — all listed in `all` (name, ifs, recommended iterations). To add a fractal, define a new `ifs` record in `fractals.ml` following the same pattern (cumulative probabilities ending at 1.0, viewport chosen to frame the attractor), add it to `all`, and mention it in the README's "Available fractals" list. Beware the coefficient order when copying numbers from a Fractint table: `sierpinski` and `koch` were pasted without reordering and drew, respectively, nothing at all and a speck, from the 2010 import until 2026-08-15.
+
+`test/test_ifs_fractals.ml` is the whole suite, in the style of the rest: no test framework and no new dependency, just a `check name bool` counter that prints its failures and exits non-zero. It covers the affine maps, the projection, the chaos game, the framing, the Fractint parser and its errors, and the PNG writer — whose output it decodes (chunks, CRCs, stored deflate blocks, scanlines) rather than trusting. Nothing in it opens a window. The seed is fixed so failures reproduce; the few statistical bounds (how many pixels a fractal lights up) are deliberately loose, and the suite is checked against several seeds when they change. Two properties are stated geometrically rather than by golden image: the Sierpinski attractor fills its triangle and avoids the central hole, and the Koch curve stays inside the triangle over its endpoints — this is what catches a fractal defined with the coefficients in the wrong order.
 
 `ifs-fractals.opam` is generated — edit `dune-project`, not the opam file.

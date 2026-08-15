@@ -200,6 +200,12 @@ You can also build and run the executable with dune:
 $ dune exec -- ifs-fractals lace
 ```
 
+The tests come with it, and need no display:
+
+```bash
+$ dune test
+```
+
 ### Defining your own fractal
 
 Add a new `ifs` record in `lib/fractals.ml` — which holds nothing but the

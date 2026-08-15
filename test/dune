@@ -1,0 +1,5 @@
+(test
+ (name test_ifs_fractals)
+ (libraries ifs_fractals)
+ ; the loader test reads the example file, from ../example at run time
+ (deps %{project_root}/example/classics.ifs))
